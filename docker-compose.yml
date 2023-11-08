@@ -1,0 +1,22 @@
+version: "3"
+services:
+  java:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8000"
+    volumes:
+      - ./target/soap-service-1.0-SNAPSHOT.jar:/app/soap-service-1.0-SNAPSHOT.jar
+  db:
+    image: mysql:latest
+    container_name: mysql-container
+    environment:
+        MYSQL_ROOT_PASSWORD: mysecretpassword
+        MYSQL_DATABASE: mydatabase
+        MYSQL_USER: moments
+        MYSQL_PASSWORD: 12345678
+    ports:
+        - "3307:3306"
+    volumes:
+        - ./mysql-data:/var/lib/mysql
