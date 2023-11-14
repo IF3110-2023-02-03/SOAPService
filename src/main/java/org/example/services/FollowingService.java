@@ -16,7 +16,7 @@ import java.util.Objects;
 @WebService
 public class FollowingService {
     @WebMethod
-    public String requestFollow(String creatorID, String followerID, String creatorName, String followerName, String api_key) {
+    public String requestFollow(String creatorID, String followerID, String creatorName, String followerName, String creatorUsername, String followerUsername, String api_key) {
         if(Objects.equals(api_key, "ini_api_key_monolitik")){
             try {
                 Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
@@ -25,12 +25,14 @@ public class FollowingService {
                 statement.setString(2, followerID);
                 ResultSet res = statement.executeQuery();
                 if(!res.next()){
-                    PreparedStatement statement2 = connection.prepareStatement("INSERT INTO following (creatorID, followerID, creatorName, followerName, status) VALUES(?, ?, ?, ?, ?)");
+                    PreparedStatement statement2 = connection.prepareStatement("INSERT INTO following (creatorID, followerID, creatorName, followerName, creatorUsername, followerUsername, status) VALUES(?, ?, ?, ?, ?, ?, ?)");
                     statement2.setString(1, creatorID);
                     statement2.setString(2, followerID);
                     statement2.setString(3, creatorName);
                     statement2.setString(4, followerName);
-                    statement2.setString(5, "PENDING");
+                    statement2.setString(5, creatorUsername);
+                    statement2.setString(6, followerUsername);
+                    statement2.setString(7, "PENDING");
                     statement2.execute();
                 }else{
                     PreparedStatement statement3 = connection.prepareStatement("UPDATE following SET status = ? WHERE creatorID = ? and followerID = ?");
@@ -194,7 +196,9 @@ public class FollowingService {
                     jsonString.append("{\"creatorID\": ").append(res.getString("creatorID")).append(",");
                     jsonString.append("\"followerID\": ").append(res.getString("followerID")).append(",");
                     jsonString.append("\"creatorName\": \"").append(res.getString("creatorName")).append("\",");
-                    jsonString.append("\"followerName\": \"").append(res.getString("followerName")).append("\"}");
+                    jsonString.append("\"followerName\": \"").append(res.getString("followerName")).append("\",");
+                    jsonString.append("\"creatorUsername\": \"").append(res.getString("creatorUsername")).append("\",");
+                    jsonString.append("\"followerUsername\": \"").append(res.getString("followerUsername")).append("\"}");
                     if (!res.isLast()) {
                         jsonString.append(", ");
                     }
