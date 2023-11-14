@@ -1,7 +1,7 @@
 package org.example.services;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.xml.ws.developer.JAXWSProperties;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
@@ -282,7 +282,7 @@ public class FollowingService {
     }
 
     @WebMethod
-    public String getContentCreators(Integer page, Integer perpage, String filter, String api_key){
+    public String getContentCreators(Integer page, Integer perpage, String filter, String id, String api_key){
         if(Objects.equals(api_key, "ini_api_key_monolitik")) {
             try {
                 StringBuilder path = new StringBuilder("http://localhost:3000/api/user?page=");
@@ -299,12 +299,27 @@ public class FollowingService {
                     response.append(line);
                 }
                 reader.close();
-
                 System.out.println("Respons: " + response.toString());
                 http.disconnect();
-                return "Sukses";
-            } catch (IOException error) {
-                return error.getMessage();
+
+                JSONObject object = new JSONObject(response.toString());
+                JSONArray array = object.getJSONArray("data");
+                for(int i=0;i<array.length();i++){
+                    Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
+                    PreparedStatement statement = connection.prepareStatement("SELECT status FROM following WHERE followerID = ? AND creatorID = ?");
+                    statement.setInt(2, array.getJSONObject(i).getInt("userID"));
+                    statement.setString(1, id);
+                    ResultSet res = statement.executeQuery();
+                    if(res.next()){
+                        array.getJSONObject(i).put("status", res.getString("status"));
+                    }else{
+                        array.getJSONObject(i).put("status", "REJECTED");
+                    }
+                    connection.close();
+                }
+                return array.toString();
+            } catch (IOException | SQLException error) {
+                return "Error";
             }
         }else{
             return "Unauthorized";
