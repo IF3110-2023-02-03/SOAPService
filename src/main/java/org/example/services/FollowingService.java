@@ -183,7 +183,7 @@ public class FollowingService {
         if(Objects.equals(api_key, "ini_api_key_rest")) {
             try {
                 Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT * FROM following WHERE followerID = ? AND status = 'PENDING' LIMIT ? OFFSET ?");
+                PreparedStatement statement = connection.prepareStatement("SELECT * FROM following WHERE creatorID = ? AND status = 'PENDING' LIMIT ? OFFSET ?");
                 statement.setString(1, followerID);
                 statement.setInt(2, perpage);
                 statement.setInt(3, (page.intValue() - 1) * perpage.intValue());
@@ -201,6 +201,7 @@ public class FollowingService {
                 }
                 jsonString.append("]");
                 connection.close();
+                System.out.println(jsonString);
                 return jsonString.toString();
             } catch (SQLException error) {
                 return error.getMessage();
@@ -215,7 +216,7 @@ public class FollowingService {
         if(Objects.equals(api_key, "ini_api_key_rest")) {
             try {
                 Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) AS cnt FROM following WHERE followerID = ? AND status = 'PENDING'");
+                PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) AS cnt FROM following WHERE creatorID = ? AND status = 'PENDING'");
                 statement.setString(1, followerID);
                 ResultSet res = statement.executeQuery();
                 StringBuilder jsonString = new StringBuilder();
@@ -276,7 +277,7 @@ public class FollowingService {
                 return "Not Followed";
             }
         }else{
-            return "Unautgorized";
+            return "Unauthorized";
         }
     }
 }
