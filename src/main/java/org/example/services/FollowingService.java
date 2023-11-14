@@ -280,4 +280,34 @@ public class FollowingService {
             return "Unauthorized";
         }
     }
+
+    @WebMethod
+    public String getContentCreators(Integer page, Integer perpage, String filter, String api_key){
+        if(Objects.equals(api_key, "ini_api_key_monolitik")) {
+            try {
+                StringBuilder path = new StringBuilder("http://localhost:3000/api/user?page=");
+                path.append(page.toString()).append("&perpage=").append(perpage.toString()).append("&filter=").append(filter);
+                URL url = new URL(path.toString());
+                System.out.println(path);
+                HttpURLConnection http = (HttpURLConnection) url.openConnection();
+                http.setRequestMethod("GET");
+                http.setDoOutput(true);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(http.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+
+                System.out.println("Respons: " + response.toString());
+                http.disconnect();
+                return "Sukses";
+            } catch (IOException error) {
+                return error.getMessage();
+            }
+        }else{
+            return "Unauthorized";
+        }
+    }
 }
