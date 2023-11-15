@@ -1,5 +1,6 @@
 package org.example.services;
 
+import org.example.repository.Repository;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -12,39 +13,21 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @WebService
 public class FollowingService {
+    private Repository repository = new Repository();
     @WebMethod
     public String requestFollow(String creatorID, String followerID, String creatorName, String followerName, String creatorUsername, String followerUsername, String api_key) {
         if(Objects.equals(api_key, "ini_api_key_monolitik")){
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT * FROM following WHERE creatorID = ? AND followerID = ?");
-                statement.setString(1, creatorID);
-                statement.setString(2, followerID);
-                ResultSet res = statement.executeQuery();
+                ResultSet res = repository.getFollowingStatus(creatorID, followerID);
                 if(!res.next()){
-                    PreparedStatement statement2 = connection.prepareStatement("INSERT INTO following (creatorID, followerID, creatorName, followerName, creatorUsername, followerUsername, status) VALUES(?, ?, ?, ?, ?, ?, ?)");
-                    statement2.setString(1, creatorID);
-                    statement2.setString(2, followerID);
-                    statement2.setString(3, creatorName);
-                    statement2.setString(4, followerName);
-                    statement2.setString(5, creatorUsername);
-                    statement2.setString(6, followerUsername);
-                    statement2.setString(7, "PENDING");
-                    statement2.execute();
+                    repository.insertOrUpdateFollowing(creatorID, followerID, creatorName, followerName, creatorUsername, followerUsername, "PENDING");
                 }else{
-                    PreparedStatement statement3 = connection.prepareStatement("UPDATE following SET status = ? WHERE creatorID = ? and followerID = ?");
-                    statement3.setString(2, creatorID);
-                    statement3.setString(3, followerID);
-                    statement3.setString(1, "PENDING");
-                    statement3.execute();
+                    repository.updateFollowingStatus(creatorID, followerID, "PENDING");
                 }
-                connection.close();
                 return "Success";
             }catch (SQLException error){
                 return error.getMessage();
@@ -58,17 +41,11 @@ public class FollowingService {
     public String confirmFollow(String creatorID, String followerID, Boolean isApproved, String api_key){
         if(Objects.equals(api_key, "ini_api_key_rest")) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("UPDATE following SET status = ? WHERE creatorID = ? and followerID = ?");
-                statement.setString(2, creatorID);
-                statement.setString(3, followerID);
                 if (isApproved) {
-                    statement.setString(1, "APPROVED");
+                    repository.updateFollowingStatus(creatorID, followerID, "APPROVED");
                 } else {
-                    statement.setString(1, "REJECTED");
+                    repository.updateFollowingStatus(creatorID, followerID, "REJECTED");
                 }
-                statement.execute();
-                connection.close();
                 return "Success";
             } catch (SQLException error) {
                 return error.getMessage();
@@ -82,12 +59,7 @@ public class FollowingService {
     public String getFollowersByID(String creatorID, Integer page, Integer perpage, String api_key){
         if(Objects.equals(api_key, "ini_api_key_rest")) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT * FROM following WHERE creatorID = ? AND status = 'APPROVED' LIMIT ? OFFSET ?");
-                statement.setString(1, creatorID);
-                statement.setInt(2, perpage);
-                statement.setInt(3, (page.intValue() - 1) * perpage.intValue());
-                ResultSet res = statement.executeQuery();
+                ResultSet res = repository.getFollowers(creatorID, perpage, (page - 1) * perpage);
                 StringBuilder jsonString = new StringBuilder();
                 jsonString.append("[");
                 while (res.next()) {
@@ -102,7 +74,6 @@ public class FollowingService {
                     }
                 }
                 jsonString.append("]");
-                connection.close();
                 return jsonString.toString();
             } catch (SQLException error) {
                 return error.getMessage();
@@ -116,14 +87,10 @@ public class FollowingService {
     public String getFollowersCountByID(String creatorID, String api_key){
         if(Objects.equals(api_key, "ini_api_key_rest")) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) AS cnt FROM following WHERE creatorID = ? AND status = 'APPROVED'");
-                statement.setString(1, creatorID);
-                ResultSet res = statement.executeQuery();
+                ResultSet res = repository.getFollowersCount(creatorID);
                 StringBuilder jsonString = new StringBuilder();
                 res.next();
                 jsonString.append("{\"count\":").append(res.getString("cnt")).append("}");
-                connection.close();
                 return jsonString.toString();
             } catch (SQLException error) {
                 return error.getMessage();
@@ -137,12 +104,7 @@ public class FollowingService {
     public String getFollowingsByID(String followerID, Integer page, Integer perpage, String api_key){
         if(Objects.equals(api_key, "ini_api_key_monolitik")) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT * FROM following WHERE followerID = ? AND status = 'APPROVED' LIMIT ? OFFSET ?");
-                statement.setString(1, followerID);
-                statement.setInt(2, perpage);
-                statement.setInt(3, (page.intValue() - 1) * perpage.intValue());
-                ResultSet res = statement.executeQuery();
+                ResultSet res = repository.getFollowings(followerID, perpage, (page - 1) * perpage);
                 StringBuilder jsonString = new StringBuilder();
                 jsonString.append("[");
                 while (res.next()) {
@@ -155,7 +117,6 @@ public class FollowingService {
                     }
                 }
                 jsonString.append("]");
-                connection.close();
                 return jsonString.toString();
             } catch (SQLException error) {
                 return error.getMessage();
@@ -169,14 +130,10 @@ public class FollowingService {
     public String getFollowingsCountByID(String followerID, String api_key){
         if(Objects.equals(api_key, "ini_api_key_monolitik")) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) AS cnt FROM following WHERE followerID = ? AND status = 'APPROVED'");
-                statement.setString(1, followerID);
-                ResultSet res = statement.executeQuery();
+                ResultSet res = repository.getFollowingsCount(followerID);
                 StringBuilder jsonString = new StringBuilder();
                 res.next();
                 jsonString.append("{\"count\":").append(res.getString("cnt")).append("}");
-                connection.close();
                 return jsonString.toString();
             } catch (SQLException error) {
                 return error.getMessage();
@@ -187,15 +144,10 @@ public class FollowingService {
     }
 
     @WebMethod
-    public String getPendingFollowingsByID(String followerID, Integer page, Integer perpage, String api_key){
+    public String getPendingFollowingsByID(String creatorID, Integer page, Integer perpage, String api_key){
         if(Objects.equals(api_key, "ini_api_key_rest")) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT * FROM following WHERE creatorID = ? AND status = 'PENDING' LIMIT ? OFFSET ?");
-                statement.setString(1, followerID);
-                statement.setInt(2, perpage);
-                statement.setInt(3, (page.intValue() - 1) * perpage.intValue());
-                ResultSet res = statement.executeQuery();
+                ResultSet res = repository.getPendingFollowings(creatorID, perpage, (page - 1) * perpage);
                 StringBuilder jsonString = new StringBuilder();
                 jsonString.append("[");
                 while (res.next()) {
@@ -210,7 +162,6 @@ public class FollowingService {
                     }
                 }
                 jsonString.append("]");
-                connection.close();
                 return jsonString.toString();
             } catch (SQLException error) {
                 return error.getMessage();
@@ -221,17 +172,13 @@ public class FollowingService {
     }
 
     @WebMethod
-    public String getPendingFollowingsCountByID(String followerID, String api_key){
+    public String getPendingFollowingsCountByID(String creatorID, String api_key){
         if(Objects.equals(api_key, "ini_api_key_rest")) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) AS cnt FROM following WHERE creatorID = ? AND status = 'PENDING'");
-                statement.setString(1, followerID);
-                ResultSet res = statement.executeQuery();
+                ResultSet res = repository.getPendingFollowingsCount(creatorID);
                 StringBuilder jsonString = new StringBuilder();
                 res.next();
                 jsonString.append("{\"count\":").append(res.getString("cnt")).append("}");
-                connection.close();
                 return jsonString.toString();
             } catch (SQLException error) {
                 return error.getMessage();
@@ -243,16 +190,7 @@ public class FollowingService {
 
     public boolean isFollowed(String creatorID, String followerID){
         try {
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-            PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) AS cnt FROM following WHERE followerID = ? AND creatorID = ? AND status = 'APPROVED'");
-            statement.setString(1, followerID);
-            statement.setString(2, creatorID);
-            ResultSet res = statement.executeQuery();
-            res.next();
-            Boolean result;
-            result = res.getInt("cnt") == 1;
-            connection.close();
-            return result;
+            return repository.isFollowed(creatorID, followerID);
         } catch (SQLException error) {
             return false;
         }
@@ -262,10 +200,7 @@ public class FollowingService {
     public String getContent(String followerID, Integer page, Integer perpage, String api_key){
         if(Objects.equals(api_key, "ini_api_key_monolitik")) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                PreparedStatement statement = connection.prepareStatement("SELECT creatorID FROM following WHERE followerID = ? AND status = 'APPROVED'");
-                statement.setString(1, followerID);
-                ResultSet res = statement.executeQuery();
+                ResultSet res = repository.getIds(followerID);
                 StringBuilder body = new StringBuilder("{ \"ids\": [");
                 while (res.next()){
                     body.append(res.getInt("creatorID"));
@@ -275,7 +210,6 @@ public class FollowingService {
                 }
                 body.append("], \"page\": ").append(page).append(", \"perpage\": ").append(perpage).append("}");
 
-                System.out.println(body);
                 URL url = new URL("http://localhost:3000/api/contents");
                 HttpURLConnection http = (HttpURLConnection) url.openConnection();
                 http.setRequestMethod("POST");
@@ -325,17 +259,12 @@ public class FollowingService {
                 JSONObject object = new JSONObject(response.toString());
                 JSONArray array = object.getJSONArray("data");
                 for(int i=0;i<array.length();i++){
-                    Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
-                    PreparedStatement statement = connection.prepareStatement("SELECT status FROM following WHERE followerID = ? AND creatorID = ?");
-                    statement.setInt(2, array.getJSONObject(i).getInt("userID"));
-                    statement.setString(1, id);
-                    ResultSet res = statement.executeQuery();
+                    ResultSet res = repository.getFollowingStatus(array.getJSONObject(i).getString("userID"), id);
                     if(res.next()){
                         array.getJSONObject(i).put("status", res.getString("status"));
                     }else{
                         array.getJSONObject(i).put("status", "REJECTED");
                     }
-                    connection.close();
                 }
                 return array.toString();
             } catch (IOException | SQLException error) {

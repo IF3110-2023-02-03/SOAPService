@@ -18,7 +18,6 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
         try {
-            DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
             Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
             Statement statement = connection.createStatement();
             statement.executeUpdate("create table if not exists following (creatorID varchar(50) not null, followerID varchar(50) not null, creatorName varchar(100), followerName varchar(100), creatorUsername varchar(50), followerUsername varchar(50), status varchar(10) not null)");
