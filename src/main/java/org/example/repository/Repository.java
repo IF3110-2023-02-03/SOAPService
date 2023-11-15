@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class Repository {
 
-    private final String dbUrl = "jdbc:mysql://localhost:3307/mydatabase";
+    private final String dbUrl = "jdbc:mysql://host.docker.internal:3307/mydatabase";
     private final String dbUsername = "root";
     private final String dbPassword = "mysecretpassword";
 
