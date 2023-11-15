@@ -8,9 +8,12 @@ import javax.jws.WebService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @WebService
@@ -39,6 +42,7 @@ public class FollowingService {
                     statement3.setString(2, creatorID);
                     statement3.setString(3, followerID);
                     statement3.setString(1, "PENDING");
+                    statement3.execute();
                 }
                 connection.close();
                 return "Success";
@@ -90,7 +94,9 @@ public class FollowingService {
                     jsonString.append("{\"creatorID\": ").append(res.getString("creatorID")).append(",");
                     jsonString.append("\"followerID\": ").append(res.getString("followerID")).append(",");
                     jsonString.append("\"creatorName\": \"").append(res.getString("creatorName")).append("\",");
-                    jsonString.append("\"followerName\": \"").append(res.getString("followerName")).append("\"}");
+                    jsonString.append("\"followerName\": \"").append(res.getString("followerName")).append("\",");
+                    jsonString.append("\"creatorUsername\": \"").append(res.getString("creatorUsername")).append("\",");
+                    jsonString.append("\"followerUsername\": \"").append(res.getString("followerUsername")).append("\"}");
                     if (!res.isLast()) {
                         jsonString.append(", ");
                     }
@@ -205,7 +211,6 @@ public class FollowingService {
                 }
                 jsonString.append("]");
                 connection.close();
-                System.out.println(jsonString);
                 return jsonString.toString();
             } catch (SQLException error) {
                 return error.getMessage();
@@ -249,36 +254,49 @@ public class FollowingService {
             connection.close();
             return result;
         } catch (SQLException error) {
-            System.out.println(error.getMessage());
             return false;
         }
     }
 
     @WebMethod
-    public String getContent(String creatorID, String followerID, String api_key){
+    public String getContent(String followerID, Integer page, Integer perpage, String api_key){
         if(Objects.equals(api_key, "ini_api_key_monolitik")) {
-            if (isFollowed(creatorID, followerID)) {
-                try {
-                    URL url = new URL("rest_url");
-                    HttpURLConnection http = (HttpURLConnection) url.openConnection();
-                    http.setRequestMethod("GET");
-                    http.setDoOutput(true);
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(http.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
+            try {
+                Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3307/mydatabase", "root", "mysecretpassword");
+                PreparedStatement statement = connection.prepareStatement("SELECT creatorID FROM following WHERE followerID = ? AND status = 'APPROVED'");
+                statement.setString(1, followerID);
+                ResultSet res = statement.executeQuery();
+                StringBuilder body = new StringBuilder("{ \"ids\": [");
+                while (res.next()){
+                    body.append(res.getInt("creatorID"));
+                    if(!res.isLast()){
+                        body.append(", ");
                     }
-                    reader.close();
-
-                    System.out.println("Respons: " + response.toString());
-                    http.disconnect();
-                    return "";
-                } catch (IOException error) {
-                    return error.getMessage();
                 }
-            } else {
-                return "Not Followed";
+                body.append("], \"page\": ").append(page).append(", \"perpage\": ").append(perpage).append("}");
+
+                System.out.println(body);
+                URL url = new URL("http://localhost:3000/api/contents");
+                HttpURLConnection http = (HttpURLConnection) url.openConnection();
+                http.setRequestMethod("POST");
+                http.setDoOutput(true);
+                http.setRequestProperty("Content-Type", "application/json");
+                try (OutputStream os = http.getOutputStream()) {
+                    byte[] input = body.toString().getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+                BufferedReader reader = new BufferedReader(new InputStreamReader(http.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+                System.out.println(response);
+                http.disconnect();
+                return response.toString();
+            } catch (IOException | SQLException error) {
+                return error.getMessage();
             }
         }else{
             return "Unauthorized";
@@ -292,7 +310,6 @@ public class FollowingService {
                 StringBuilder path = new StringBuilder("http://localhost:3000/api/user?page=");
                 path.append(page.toString()).append("&perpage=").append(perpage.toString()).append("&filter=").append(filter);
                 URL url = new URL(path.toString());
-                System.out.println(path);
                 HttpURLConnection http = (HttpURLConnection) url.openConnection();
                 http.setRequestMethod("GET");
                 http.setDoOutput(true);
@@ -303,7 +320,6 @@ public class FollowingService {
                     response.append(line);
                 }
                 reader.close();
-                System.out.println("Respons: " + response.toString());
                 http.disconnect();
 
                 JSONObject object = new JSONObject(response.toString());
