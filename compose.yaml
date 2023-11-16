@@ -1,4 +1,3 @@
-version: "3"
 services:
   db:
     image: mysql:latest
@@ -16,6 +15,7 @@ services:
     networks:
       - custom-network
   java:
+    image: moments-soap-service:latest
     build:
       context: .
       dockerfile: Dockerfile
