@@ -19,4 +19,14 @@ services:
     ports:
         - "3307:3306"
     volumes:
-        - ./mysql-data:/var/lib/mysql
+        - ./mysql-data:/var/lib/
+        - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+  java:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./target/soap-service-1.0-SNAPSHOT.jar:/app/soap-service-1.0-SNAPSHOT.jar
+      - ./target/soap-service-1.0-SNAPSHOT-jar-with-dependencies.jar:/app/soap-service-1.0-SNAPSHOT-jar-with-dependencies.jar

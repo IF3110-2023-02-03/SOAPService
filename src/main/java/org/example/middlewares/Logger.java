@@ -11,17 +11,14 @@ import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 import java.sql.*;
-import java.util.Date;
 import java.util.Set;
 
 public class Logger implements SOAPHandler<SOAPMessageContext> {
     private void recordToDatabase(SOAPMessageContext smc) throws SOAPException {
-        boolean isResponse = (boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
+        boolean isOutbound = (boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
         HttpExchange httpExchange = (HttpExchange) smc.get(JAXWSProperties.HTTP_EXCHANGE);
 
-        if (!isResponse) {
-            String token = httpExchange.getRequestHeaders().getFirst("Authorization");
-            System.out.println(token);
+        if (!isOutbound) {
             try {
                 SOAPPart soapPart = smc.getMessage().getSOAPPart();
                 SOAPEnvelope soapEnvelope = soapPart.getEnvelope();
