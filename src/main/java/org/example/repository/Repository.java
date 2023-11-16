@@ -13,14 +13,17 @@ public class Repository {
     private final String dbPassword = "mysecretpassword";
 
     private Connection getConnection() throws SQLException {
+        System.out.println("siniiiii");
         return DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
     }
 
     public ResultSet getFollowingStatus(String creatorID, String followerID) throws SQLException {
         Connection connection = getConnection();
+        System.out.println("sini 2");
         PreparedStatement statement = connection.prepareStatement("SELECT status FROM following WHERE creatorID = ? AND followerID = ?");
         statement.setString(1, creatorID);
         statement.setString(2, followerID);
+        System.out.println("sini3");
         return statement.executeQuery();
     }
 

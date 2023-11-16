@@ -210,7 +210,7 @@ public class FollowingService {
                 }
                 body.append("], \"page\": ").append(page).append(", \"perpage\": ").append(perpage).append("}");
 
-                URL url = new URL("http://localhost:3000/api/contents");
+                URL url = new URL("http://host.docker.internal:3000/api/contents");
                 HttpURLConnection http = (HttpURLConnection) url.openConnection();
                 http.setRequestMethod("POST");
                 http.setDoOutput(true);
@@ -241,7 +241,7 @@ public class FollowingService {
     public String getContentCreators(Integer page, Integer perpage, String filter, String id, String api_key){
         if(Objects.equals(api_key, "ini_api_key_monolitik")) {
             try {
-                StringBuilder path = new StringBuilder("http://localhost:3000/api/user?page=");
+                StringBuilder path = new StringBuilder("http://host.docker.internal:3000/api/user?page=");
                 path.append(page.toString()).append("&perpage=").append(perpage.toString()).append("&filter=").append(filter);
                 URL url = new URL(path.toString());
                 HttpURLConnection http = (HttpURLConnection) url.openConnection();
@@ -256,10 +256,12 @@ public class FollowingService {
                 reader.close();
                 http.disconnect();
 
+                System.out.println(line);
                 JSONObject object = new JSONObject(response.toString());
                 JSONArray array = object.getJSONArray("data");
                 for(int i=0;i<array.length();i++){
-                    ResultSet res = repository.getFollowingStatus(array.getJSONObject(i).getString("userID"), id);
+                    Integer userID = array.getJSONObject(i).getInt("userID");
+                    ResultSet res = repository.getFollowingStatus(userID.toString(), id);
                     if(res.next()){
                         array.getJSONObject(i).put("status", res.getString("status"));
                     }else{
