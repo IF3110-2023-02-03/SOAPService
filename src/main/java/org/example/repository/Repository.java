@@ -13,7 +13,6 @@ public class Repository {
     private final String dbPassword = "mysecretpassword";
 
     private Connection getConnection() throws SQLException {
-        System.out.println("siniiiii");
         return DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
     }
 
@@ -52,13 +51,28 @@ public class Repository {
         connection.close();
     }
 
-    public ResultSet getFollowers(String creatorID, int limit, int offset) throws SQLException {
-        Connection connection = getConnection();
-        PreparedStatement statement = connection.prepareStatement("SELECT * FROM following WHERE creatorID = ? AND status = 'APPROVED' LIMIT ? OFFSET ?");
-        statement.setString(1, creatorID);
-        statement.setInt(2, limit);
-        statement.setInt(3, offset);
-        return statement.executeQuery();
+    public ResultSet getFollowers(String creatorID, int limit, int offset, String filter) throws SQLException {
+        if(filter.length() > 0){
+            Connection connection = getConnection();
+            StringBuilder query = new StringBuilder("SELECT * FROM following WHERE creatorID = ? AND status = 'APPROVED' AND (followerUsername LIKE '%");
+            query.append(filter).append("%' OR followerName LIKE '%").append(filter).append("%') LIMIT ? OFFSET ?");
+            System.out.println(query.toString());
+            PreparedStatement statement = connection.prepareStatement(query.toString());
+            statement.setString(1, creatorID);
+            statement.setInt(2, limit);
+            statement.setInt(3, offset);
+            System.out.println(statement);
+            return statement.executeQuery();
+        }else{
+            
+            Connection connection = getConnection();
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM following WHERE creatorID = ? AND status = 'APPROVED' LIMIT ? OFFSET ?");
+            statement.setString(1, creatorID);
+            statement.setInt(2, limit);
+            statement.setInt(3, offset);
+            System.out.println(statement);
+            return statement.executeQuery();
+        }
     }
 
     public ResultSet getFollowersCount(String creatorID) throws SQLException {

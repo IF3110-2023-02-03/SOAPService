@@ -56,10 +56,10 @@ public class FollowingService {
     }
 
     @WebMethod
-    public String getFollowersByID(String creatorID, Integer page, Integer perpage, String api_key){
+    public String getFollowersByID(String creatorID, Integer page, Integer perpage, String filter, String api_key){
         if(Objects.equals(api_key, "ini_api_key_rest")) {
             try {
-                ResultSet res = repository.getFollowers(creatorID, perpage, (page - 1) * perpage);
+                ResultSet res = repository.getFollowers(creatorID, perpage, (page - 1) * perpage, filter);
                 StringBuilder jsonString = new StringBuilder();
                 jsonString.append("[");
                 while (res.next()) {
