@@ -49,3 +49,26 @@ Layanan web menggunakan tabel basis data berikut:
 | 13521058  | Semua berkaitan dengan update akun pengguna |
 | 13521065  | Semua berkaitan dengan following pengguna   |
 | 13521162  | Semua berkaitan dengan content              |
+
+### Prasyarat
+
+Pastikan Anda memiliki perangkat lunak berikut yang terinstal:
+- Java JDK (versi yang direkomendasikan: 11 atau lebih tinggi)
+- Maven (versi yang direkomendasikan: 3.6.0 atau lebih tinggi)
+- Docker (opsional, jika ingin menjalankan aplikasi dalam container)
+
+
+### Menjalankan Aplikasi
+
+1. **Build Aplikasi**
+   - Buka terminal atau command prompt.
+   - Navigasi ke direktori root proyek.
+   - Jalankan perintah berikut untuk mem-build aplikasi:
+     ```sh
+     mvn clean package
+     ```
+1. **menjalankan docker**
+   - Jalankan perintah berikut untuk mem-build aplikasi:
+     ```sh
+     docker compose up
+     ```
