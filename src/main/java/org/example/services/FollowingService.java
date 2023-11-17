@@ -276,4 +276,48 @@ public class FollowingService {
             return "Unauthorized";
         }
     }
+
+    @WebMethod
+    public void updateFollowerUsername(String oldFollowerUsername, String newFollowerUsername, String api_key){
+        if(Objects.equals(api_key, "ini_api_key_monolitik")) {
+            try {
+                repository.updateFollowerUsername(oldFollowerUsername, newFollowerUsername);
+            } catch (SQLException error) {
+                System.out.println(error.getMessage());
+            }
+        }
+    }
+
+    @WebMethod
+    public void updateCreatorUsername(String oldCreatorUsername, String newCreatorUsername, String api_key){
+        if(Objects.equals(api_key, "ini_api_key_monolitik")) {
+            try {
+                repository.updateCreatorUsername(oldCreatorUsername, newCreatorUsername);
+            } catch (SQLException error) {
+                System.out.println(error.getMessage());
+            }
+        }
+    }
+
+    @WebMethod
+    public void updateFollowerName(String oldFollowerName, String newFollowerName, String api_key){
+        if(Objects.equals(api_key, "ini_api_key_monolitik")) {
+            try {
+                repository.updateFollowerName(oldFollowerName, newFollowerName);
+            } catch (SQLException error) {
+                System.out.println(error.getMessage());
+            }
+        }
+    }
+
+    @WebMethod
+    public void updateCreatorName(String oldCreatorName, String newCreatorName, String api_key){
+        if(Objects.equals(api_key, "ini_api_key_monolitik")) {
+            try {
+                repository.updateCreatorName(oldCreatorName, newCreatorName);
+            } catch (SQLException error) {
+                System.out.println(error.getMessage());
+            }
+        }
+    }
 }

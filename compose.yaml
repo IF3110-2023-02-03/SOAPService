@@ -1,4 +1,3 @@
-version: "3"
 services:
   db:
     image: mysql:latest
@@ -11,11 +10,12 @@ services:
     ports:
         - "3308:3306"
     volumes:
-        - ./mysql-data:/var/lib/
+        - ./mysql-data:/var/lib/mysql
         - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - custom-network
   java:
+    image: moments-soap-service:latest
     build:
       context: .
       dockerfile: Dockerfile

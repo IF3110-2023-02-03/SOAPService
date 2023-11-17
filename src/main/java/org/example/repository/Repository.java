@@ -132,4 +132,40 @@ public class Repository {
         statement.setString(1, followerID);
         return statement.executeQuery();
     }
+
+    public void updateFollowerUsername(String oldFollowerUsername, String newFollowerUsername) throws SQLException {
+        Connection connection = getConnection();
+        PreparedStatement statement = connection.prepareStatement("UPDATE following SET followerUsername = ? WHERE followerUsername = ?");
+        statement.setString(1, newFollowerUsername);
+        statement.setString(2, oldFollowerUsername);
+        statement.execute();
+        connection.close();
+    }
+
+    public void updateCreatorUsername(String oldCreatorUsername, String newCreatorUsername) throws SQLException {
+        Connection connection = getConnection();
+        PreparedStatement statement = connection.prepareStatement("UPDATE following SET creatorUsername = ? WHERE creatorUsername = ?");
+        statement.setString(1, newCreatorUsername);
+        statement.setString(2, oldCreatorUsername);
+        statement.execute();
+        connection.close();
+    }
+
+    public void updateFollowerName(String oldFollowerName, String newFollowerName) throws SQLException {
+        Connection connection = getConnection();
+        PreparedStatement statement = connection.prepareStatement("UPDATE following SET followerName = ? WHERE followerName = ?");
+        statement.setString(1, newFollowerName);
+        statement.setString(2, oldFollowerName);
+        statement.execute();
+        connection.close();
+    }
+
+    public void updateCreatorName(String oldCreatorName, String newCreatorName) throws SQLException {
+        Connection connection = getConnection();
+        PreparedStatement statement = connection.prepareStatement("UPDATE following SET creatorName = ? WHERE creatorName = ?");
+        statement.setString(1, newCreatorName);
+        statement.setString(2, oldCreatorName);
+        statement.execute();
+        connection.close();
+    }
 }
